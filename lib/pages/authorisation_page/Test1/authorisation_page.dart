@@ -6,10 +6,10 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import '../main_page/menu_page.dart';
-import '../../design/colors.dart';
-import '../../design/images.dart';
-import 'providers.dart';
+import '../../main_page/menu_page.dart';
+import '../../../design/colors.dart';
+import '../../../design/images.dart';
+import '../Test2/providers.dart';
 
 const String BASE_URL = "https://tgrj0i-37-29-92-61.ru.tuna.am";
 const String LOGIN_URL = "$BASE_URL/api/login";
@@ -215,9 +215,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       suffixIcon: IconButton(
-                        icon: Icon(_isPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.remove_red_eye_outlined
+                              : Icons.remove_red_eye,
+                          color: _isPasswordVisible ? yellow : Colors.grey,
+                        ),
                         onPressed: _togglePasswordVisibility,
                       ),
                     ),
@@ -253,7 +256,6 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   }
 }
 
-/// Кастомный AppBar с треугольной формой
 class TriangleAppBarPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

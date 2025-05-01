@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../authorisation_page/providers.dart';
+import '../authorisation_page/Test2/providers.dart';
 import 'task_detail_page.dart';
 
 class TaskItem extends ConsumerWidget {

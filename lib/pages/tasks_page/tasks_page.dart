@@ -7,7 +7,7 @@ import '../../design/colors.dart';
 import '../../design/dimensions.dart';
 import 'editor/new_task.dart';
 import 'task_item.dart';
-import '../authorisation_page/providers.dart';
+import '../authorisation_page/Test2/providers.dart';
 import 'package:http/http.dart' as http;
 
 class TasksPage extends ConsumerStatefulWidget {

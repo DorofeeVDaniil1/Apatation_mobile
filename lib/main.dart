@@ -1,4 +1,4 @@
-import 'package:anhk/pages/main_page/menu_page.dart';
+import 'package:anhk/pages/authorisation_page/Test2/authorisation_page.dart'; // Add this import
 import 'package:flutter/material.dart';
 import 'package:anhk/design/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         scaffoldBackgroundColor: backgroundColor,
       ),
-      home: const MainScreen(),
+      home: const AuthorizationPage(),
     );
   }
 }
