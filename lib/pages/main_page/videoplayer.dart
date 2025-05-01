@@ -6,9 +6,9 @@ class VideoPlayerBlock extends StatefulWidget {
   final String videoUrl;
 
   const VideoPlayerBlock({
-    Key? key,
+    super.key,
     required this.videoUrl,
-  }) : super(key: key);
+  });
 
   @override
   _VideoPlayerBlockState createState() => _VideoPlayerBlockState();
@@ -47,7 +47,8 @@ class _VideoPlayerBlockState extends State<VideoPlayerBlock> {
     }
     // Оборачиваем в ClipRRect для закругления углов
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20), // Можно изменить радиус по необходимости
+      borderRadius:
+          BorderRadius.circular(20), // Можно изменить радиус по необходимости
       child: AspectRatio(
         aspectRatio: _videoPlayerController.value.aspectRatio,
         child: Chewie(controller: _chewieController!),

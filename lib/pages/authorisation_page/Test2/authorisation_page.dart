@@ -1,7 +1,9 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../onboarding/onboarding_page.dart';
 import 'auth_controller.dart';
-import '../../main_page/menu_page.dart'; // Убедитесь, что путь правильный
 import 'forgot_password_page.dart';
 
 class AuthorizationPage extends ConsumerStatefulWidget {
@@ -84,7 +86,7 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
 
   void _navigateToHome() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MainScreen()),
+      MaterialPageRoute(builder: (_) => const OnboardingPage()),
     );
   }
 
