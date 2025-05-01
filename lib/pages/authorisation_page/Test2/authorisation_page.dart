@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_controller.dart';
 import '../../main_page/menu_page.dart'; // Убедитесь, что путь правильный
+import 'forgot_password_page.dart';
 
 class AuthorizationPage extends ConsumerStatefulWidget {
   const AuthorizationPage({super.key});
@@ -288,7 +288,12 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
                   // Forgot password
                   TextButton(
                     onPressed: () {
-                      // Handle forgot password
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordPage(),
+                        ),
+                      );
                     },
                     child: const Text(
                       'Забыли пароль?',
