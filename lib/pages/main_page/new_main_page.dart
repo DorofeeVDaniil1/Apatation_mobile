@@ -5,7 +5,7 @@ import 'main_page.dart';
 import '../tasks_page/tasks_page.dart';
 import '../questions/questions_page.dart';
 import '../profile/profile_page.dart';
-import '../../design/colors.dart'; // Для использования yellow цвета
+import '../../design/colors.dart';
 import '../links_page.dart';
 import '../../widgets/top_menu.dart';
 // import '../address_page.dart';
@@ -30,13 +30,114 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: const MainApp(),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const MainApp(),
+          '/links': (context) => Scaffold(
+                body: Column(
+                  children: [
+                    const TopMenu(
+                      showBackButton: true,
+                      userName: 'Даниил',
+                      userLevel: 1,
+                      points: 100,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Ссылки'),
+                  ],
+                ),
+              ),
+          '/address': (context) => Scaffold(
+                body: Column(
+                  children: [
+                    const TopMenu(
+                      userName: 'Даниил',
+                      userLevel: 1,
+                      points: 100,
+                      showLogo: true,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Адрес'),
+                  ],
+                ),
+              ),
+          '/about': (context) => Scaffold(
+                body: Column(
+                  children: [
+                    const TopMenu(
+                      userName: 'Даниил',
+                      userLevel: 1,
+                      points: 100,
+                      showLogo: true,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('О нас'),
+                  ],
+                ),
+              ),
+          '/access': (context) => Scaffold(
+                body: Column(
+                  children: [
+                    const TopMenu(
+                      userName: 'Даниил',
+                      userLevel: 1,
+                      points: 100,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Пропускной режим'),
+                  ],
+                ),
+              ),
+          '/points': (context) => Scaffold(
+                body: Column(
+                  children: [
+                    const TopMenu(
+                      userName: 'Даниил',
+                      userLevel: 1,
+                      points: 100,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Баллы'),
+                  ],
+                ),
+              ),
+          '/instructions': (context) => Scaffold(
+                body: Column(
+                  children: [
+                    const TopMenu(
+                      userName: 'Даниил',
+                      userLevel: 1,
+                      points: 100,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Инструкции'),
+                  ],
+                ),
+              ),
+          '/documents': (context) => Scaffold(
+                body: Column(
+                  children: [
+                    const TopMenu(
+                      userName: 'Даниил',
+                      userLevel: 1,
+                      points: 100,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Документы'),
+                  ],
+                ),
+              ),
+        },
+        onUnknownRoute: (settings) => MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(child: Text('Страница не найдена')),
+          ),
+        ),
       ),
     );
   }
 }
 
-// main_page.dart
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
@@ -45,10 +146,8 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   int _selectedIndex = 0;
 
-  // Основные страницы, доступные через меню
   final List<Widget> _menuPages = const [
     MainPage(),
     TasksPage(),
@@ -57,26 +156,15 @@ class _MainAppState extends State<MainApp> {
   ];
 
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
     setState(() {
       _selectedIndex = index;
     });
-    // Переход внутри вложенного Navigator:
-    _navigatorKey.currentState!.pushReplacement(
-      MaterialPageRoute(builder: (_) => _menuPages[index]),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Navigator(
-        key: _navigatorKey,
-        onGenerateRoute: (RouteSettings settings) {
-          // Начальная страница соответствует выбранной вкладке меню
-          return MaterialPageRoute(builder: (_) => _menuPages[_selectedIndex]);
-        },
-      ),
+      body: _menuPages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         height: 70,
         selectedIndex: _selectedIndex,
@@ -138,7 +226,6 @@ class NavItem {
   NavItem(this.title, this.iconPath, this.active);
 }
 
-// Обновим MainPage
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -151,14 +238,11 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: MediaQuery.of(context)
-            .size
-            .width, // Используем MediaQuery вместо фиксированных значений
+        width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         color: const Color(0xFFF6F7FB),
         child: Stack(
           children: [
-            // Header section with dark background
             Positioned(
               top: 0,
               left: 0,
@@ -173,7 +257,6 @@ class _MainPageState extends State<MainPage> {
                 ),
               ),
             ),
-            // Main content area
             Positioned(
               top: 124,
               left: 0,
@@ -205,24 +288,26 @@ class _MainPageState extends State<MainPage> {
 
   List<Widget> _buildMenuItems() {
     final menuItems = [
-      MenuItem('Ссылки', 'assets/attach.png', small: true, route: '/links'),
-      MenuItem('Адрес', 'assets/location.png', small: true, route: '/address'),
-      MenuItem('О нас', 'assets/people.png', small: true, route: '/about'),
-      MenuItem('Пропускной режим', 'assets/mask-group.png', route: '/access'),
-      MenuItem('Баллы', 'assets/points.png', route: '/points'),
-      MenuItem('Инструкции', 'assets/instructions.png', route: '/instructions'),
-      MenuItem('Документы', 'assets/documents.png', route: '/documents'),
+      MenuItem('Ссылки', 'assets/images/attach.png',
+          small: true, route: '/links'),
+      MenuItem('Адрес', 'assets/images/location.png',
+          small: true, route: '/address'),
+      MenuItem('О нас', 'assets/images/people.png',
+          small: true, route: '/about'),
+      MenuItem('Пропускной режим', 'assets/images/mask-group.png',
+          route: '/access'),
+      MenuItem('Баллы', 'assets/images/points.png', route: '/points'),
+      MenuItem('Инструкции', 'assets/images/instructions.png',
+          route: '/instructions'),
+      MenuItem('Документы', 'assets/images/documents.png', route: '/documents'),
     ];
 
     return menuItems.map((item) {
       return GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => _getPageForRoute(item.route),
-            ),
-          );
+          if (item.route != null) {
+            Navigator.pushNamed(context, item.route!);
+          }
         },
         child: Container(
           width: item.small ? 100 : 170,
@@ -249,6 +334,8 @@ class _MainPageState extends State<MainPage> {
                 right: 0,
                 child: Image.asset(
                   item.iconPath,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.image_not_supported),
                   width: item.small ? 43 : 41,
                   height: item.small ? 43 : 41,
                 ),
@@ -258,26 +345,5 @@ class _MainPageState extends State<MainPage> {
         ),
       );
     }).toList();
-  }
-
-  Widget _getPageForRoute(String? route) {
-    switch (route) {
-      case '/links':
-        return const LinksPage();
-      // case '/address':
-      //   return const AddressPage();
-      // case '/about':
-      //   return const AboutUsPage();
-      // case '/access':
-      //   return const AccessPage();
-      // case '/points':
-      //   return const PointsPage();
-      // case '/instructions':
-      //   return const InstructionsPage();
-      // case '/documents':
-      //   return const DocumentsPage();
-      default:
-        return const SizedBox.shrink();
-    }
   }
 }
