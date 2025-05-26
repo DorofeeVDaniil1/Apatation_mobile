@@ -1,10 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:anhk/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/is_admin_provider.dart';
 import '../../onboarding/onboarding_page.dart';
 import 'auth_controller.dart';
-import 'forgot_password_page.dart';
+import '../../forgot/reset/forgot_password_page.dart';
 
 class AuthorizationPage extends ConsumerStatefulWidget {
   const AuthorizationPage({super.key});
@@ -35,7 +37,10 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
   }
 
   Future<void> _tryAutoLogin() async {
+    setState(() => _isLoading = true);
     final success = await _authController.tryAutoLogin();
+    setState(() => _isLoading = false);
+
     if (success) {
       _navigateToHome();
     }
@@ -92,6 +97,8 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isAdmin = ref.watch(isAdminProvider);
     return Scaffold(
       body: Stack(
         children: [
@@ -131,186 +138,76 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
               ],
             ),
           ),
-
-          // Login Form
-          Positioned.fill(
-            top: 296,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  const Text(
-                    'Авторизация',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black26,
-                          blurRadius: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 60),
-
-                  // Login input
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        text: const TextSpan(
-                          text: 'Логин',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '*',
-                              style: TextStyle(color: Color(0xFFC10D0D)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(17),
-                        ),
-                        child: TextField(
-                          controller: _loginController,
-                          decoration: const InputDecoration(
-                            hintText: 'Логин',
-                            hintStyle: TextStyle(
-                              color: Color(0x4C000000),
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 17,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 45),
-
-                  // Password input
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        text: const TextSpan(
-                          text: 'Пароль',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '*',
-                              style: TextStyle(color: Color(0xB2C10D0D)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(17),
-                        ),
-                        child: TextField(
-                          controller: _passwordController,
-                          obscureText: _obscureText,
-                          decoration: InputDecoration(
-                            hintText: 'Пароль',
-                            hintStyle: const TextStyle(
-                              color: Color(0x4C000000),
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 17,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureText
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: const Color(0x4C000000),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureText = !_obscureText;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 90),
-
-                  // Login button
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFCC00),
-                      foregroundColor: const Color(0xFF1B1918),
-                      minimumSize: const Size(double.infinity, 60),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+          // Login form
+          if (!_isLoading)
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextField(
+                      controller: _loginController,
+                      decoration: const InputDecoration(
+                        labelText: 'Логин',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(),
                       ),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF1B1918)),
-                            ),
-                          )
-                        : const Text(
-                            'Вход',
-                            style: TextStyle(
-                              fontSize: 20,
-                            ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: _obscureText,
+                      decoration: InputDecoration(
+                        labelText: 'Пароль',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureText
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Forgot password
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ForgotPasswordPage(),
+                          onPressed: () {
+                            setState(() => _obscureText = !_obscureText);
+                          },
                         ),
-                      );
-                    },
-                    child: const Text(
-                      'Забыли пароль?',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _handleLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFCC00),
+                          foregroundColor: Colors.black,
+                        ),
+                        child: const Text('Войти'),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordPage(),
+                          ),
+                        );
+                      },
+                      child: const Text('Забыли пароль?'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-
-          // Status bar content
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
         ],
       ),
     );

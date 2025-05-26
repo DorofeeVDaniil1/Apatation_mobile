@@ -8,6 +8,7 @@ import '../profile/profile_page.dart';
 import '../../design/colors.dart';
 import '../links_page.dart';
 import '../../widgets/top_menu.dart';
+import '../../widgets/base_page_template.dart';
 // import '../address_page.dart';
 // import '../about_us_page.dart';
 // import '../access_page.dart';
@@ -33,99 +34,29 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const MainApp(),
-          '/links': (context) => Scaffold(
-                body: Column(
-                  children: [
-                    const TopMenu(
-                      showBackButton: true,
-                      userName: 'Даниил',
-                      userLevel: 1,
-                      points: 100,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Ссылки'),
-                  ],
-                ),
+          '/links': (context) => BasePageTemplate(
+                showBackButton: true,
+                child: const Text('Ссылки'),
               ),
-          '/address': (context) => Scaffold(
-                body: Column(
-                  children: [
-                    const TopMenu(
-                      userName: 'Даниил',
-                      userLevel: 1,
-                      points: 100,
-                      showLogo: true,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Адрес'),
-                  ],
-                ),
+          '/address': (context) => BasePageTemplate(
+                showLogo: true,
+                child: const Text('Адрес'),
               ),
-          '/about': (context) => Scaffold(
-                body: Column(
-                  children: [
-                    const TopMenu(
-                      userName: 'Даниил',
-                      userLevel: 1,
-                      points: 100,
-                      showLogo: true,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('О нас'),
-                  ],
-                ),
+          '/about': (context) => BasePageTemplate(
+                showLogo: true,
+                child: const Text('О нас'),
               ),
-          '/access': (context) => Scaffold(
-                body: Column(
-                  children: [
-                    const TopMenu(
-                      userName: 'Даниил',
-                      userLevel: 1,
-                      points: 100,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Пропускной режим'),
-                  ],
-                ),
+          '/access': (context) => const BasePageTemplate(
+                child: Text('Пропускной режим'),
               ),
-          '/points': (context) => Scaffold(
-                body: Column(
-                  children: [
-                    const TopMenu(
-                      userName: 'Даниил',
-                      userLevel: 1,
-                      points: 100,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Баллы'),
-                  ],
-                ),
+          '/points': (context) => const BasePageTemplate(
+                child: Text('Баллы'),
               ),
-          '/instructions': (context) => Scaffold(
-                body: Column(
-                  children: [
-                    const TopMenu(
-                      userName: 'Даниил',
-                      userLevel: 1,
-                      points: 100,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Инструкции'),
-                  ],
-                ),
+          '/instructions': (context) => const BasePageTemplate(
+                child: Text('Инструкции'),
               ),
-          '/documents': (context) => Scaffold(
-                body: Column(
-                  children: [
-                    const TopMenu(
-                      userName: 'Даниил',
-                      userLevel: 1,
-                      points: 100,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Документы'),
-                  ],
-                ),
+          '/documents': (context) => const BasePageTemplate(
+                child: Text('Документы'),
               ),
         },
         onUnknownRoute: (settings) => MaterialPageRoute(
@@ -236,51 +167,13 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        color: const Color(0xFFF6F7FB),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 330,
-              child: Container(
-                color: const Color(0xFF0D1720),
-                child: const TopMenu(
-                  userName: 'Даниил',
-                  userLevel: 1,
-                  points: 100,
-                ),
-              ),
-            ),
-            Positioned(
-              top: 124,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFDFDFE),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(35),
-                    topRight: Radius.circular(35),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 52, left: 30, right: 30),
-                  child: Wrap(
-                    spacing: 20,
-                    runSpacing: 20,
-                    children: _buildMenuItems(),
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return BasePageTemplate(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 52, left: 30, right: 30),
+        child: Wrap(
+          spacing: 20,
+          runSpacing: 20,
+          children: _buildMenuItems(),
         ),
       ),
     );

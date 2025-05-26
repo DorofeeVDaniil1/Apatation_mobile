@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/user_provider.dart';
 import 'top_menu.dart';
 
-class BasePageTemplate extends StatelessWidget {
+class BasePageTemplate extends ConsumerWidget {
   final Widget child;
-  final String userName;
-  final int userLevel;
-  final int points;
+  final bool showBackButton;
+  final bool showLogo;
 
   const BasePageTemplate({
     super.key,
     required this.child,
-    this.userName = 'Даниил',
-    this.userLevel = 1,
-    this.points = 100,
+    this.showBackButton = false,
+    this.showLogo = false,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider);
+
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -33,9 +35,11 @@ class BasePageTemplate extends StatelessWidget {
               child: Container(
                 color: const Color(0xFF0D1720),
                 child: TopMenu(
-                  userName: userName,
-                  userLevel: userLevel,
-                  points: points,
+                  userName: user.name,
+                  userLevel: user.level,
+                  points: user.points,
+                  showBackButton: showBackButton,
+                  showLogo: showLogo,
                 ),
               ),
             ),

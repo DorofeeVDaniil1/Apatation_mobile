@@ -5,91 +5,76 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'providers.dart';
+
+import '../../../models/user.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
+import '../../../services/api_service.dart';
+import '../../../services/user_service.dart';
 
 class AuthController {
   final _logger = Logger('AuthController');
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final WidgetRef ref;
+  late final UserService _userService;
 
-  static const String BASE_URL = "https://tgrj0i-37-29-92-61.ru.tuna.am";
-  static const String LOGIN_URL = "$BASE_URL/api/login";
-
-  AuthController(this.ref);
-
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'tuna-skip-browser-warning': 'true',
-      };
+  AuthController(this.ref) {
+    final apiService =
+        ApiService(baseUrl: 'https://tgrj0i-37-29-92-61.ru.tuna.am');
+    _userService = UserService(apiService);
+  }
 
   Future<bool> tryAutoLogin() async {
-    final tokens = await _getTokens();
-    final accessToken = tokens['access_token'] ?? '';
+    final token = await _getToken();
+    if (token.isEmpty) return false;
 
-    _logger.info("AutoLogin: найден токен: $accessToken");
-    if (accessToken.isNotEmpty) {
-      try {
-        final response = await http.post(
-          Uri.parse(LOGIN_URL),
-          headers: _headers,
-          body: json.encode({'access_token': accessToken}),
-        );
-        final decodedResponse = utf8.decode(response.bodyBytes);
-        _logger
-            .info("AutoLogin: ответ ${response.statusCode} - $decodedResponse");
-
-        if (response.statusCode == 200) {
-          _handleSuccessfulLogin(accessToken);
-          return true;
-        }
-      } catch (e) {
-        _logger.severe("AutoLogin: исключение $e");
-      }
+    try {
+      await _handleSuccessfulLogin(token);
+      return true;
+    } catch (e) {
+      _logger.severe('AutoLogin error: $e');
+      return false;
     }
-    return false;
   }
 
   Future<(bool, String)> login(String login, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse(LOGIN_URL),
-        headers: _headers,
-        body: json.encode({'login': login, 'password': password}),
-      );
-      _logger.info("Login: ответ ${response.statusCode} - ${response.body}");
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        _logger.info("Login: полученные данные $data");
-        await _saveTokens(data['access_token']);
-        _handleSuccessfulLogin(data['access_token']);
-        return (true, '');
-      } else if (response.statusCode == 401) {
+      final token = await _userService.login(login, password);
+      await _handleSuccessfulLogin(token);
+      return (true, '');
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
         return (false, 'Неверный логин или пароль');
-      } else {
-        return (false, 'Ошибка авторизации');
       }
+      return (false, 'Ошибка авторизации');
     } catch (e) {
-      _logger.severe("Login: исключение $e");
+      _logger.severe('Login error: $e');
       return (false, 'Ошибка соединения. Попробуйте позже.');
     }
   }
 
-  void _handleSuccessfulLogin(String accessToken) {
-    final tokenParts = accessToken.split('_');
-    if (tokenParts.isNotEmpty && tokenParts.last == 'admin') {
-      ref.read(isAdminProvider.notifier).state = true;
-    }
+  Future<void> _handleSuccessfulLogin(String token) async {
+    await _saveToken(token);
+    ref.read(authTokenProvider.notifier).state = token;
+
+    // Загружаем профиль пользователя
+    final user = await _userService.getProfile();
+    ref.read(userProvider.notifier).updateUser(user);
   }
 
-  Future<void> _saveTokens(String accessToken) async {
-    await _secureStorage.write(key: 'access_token', value: accessToken);
+  Future<void> _saveToken(String token) async {
+    await _secureStorage.write(key: 'access_token', value: token);
   }
 
-  Future<Map<String, String>> _getTokens() async {
-    final accessToken = await _secureStorage.read(key: 'access_token') ?? '';
-    return {
-      'access_token': accessToken,
-    };
+  Future<String> _getToken() async {
+    return await _secureStorage.read(key: 'access_token') ?? '';
+  }
+
+  Future<void> logout() async {
+    await _secureStorage.delete(key: 'access_token');
+    ref.read(authTokenProvider.notifier).state = null;
+    ref.read(userProvider.notifier).updateUser(
+          const User(name: '', level: 0, points: 0),
+        );
   }
 }
