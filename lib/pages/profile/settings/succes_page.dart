@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../design/colors.dart';
 // Импортируйте здесь, если нужно
-import 'package:anhk/pages/profile/profile_page.dart'; // Импортируйте страницу ProfilePage
+// Импортируйте страницу ProfilePage
 
 class SuccesPage extends StatelessWidget {
-  const SuccesPage({Key? key}) : super(key: key);
+  const SuccesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,13 +49,10 @@ class SuccesPage extends StatelessWidget {
                       ),
                       iconSize: 32,
                       onPressed: () {
-                        // Переход на страницу ProfilePage
-                        Navigator.push(
+                        Navigator.popUntil(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const ProfilePage(), // Переход на страницу ProfilePage
-                          ),
+                          (route) =>
+                              route.isFirst || route.settings.name == 'profile',
                         );
                       },
                     ),

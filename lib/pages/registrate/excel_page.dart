@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../design/colors.dart';
 
 class ThroughExcel extends StatelessWidget {
-  const ThroughExcel({Key? key}) : super(key: key);
+  const ThroughExcel({super.key});
 
   @override
   Widget build(BuildContext context) {

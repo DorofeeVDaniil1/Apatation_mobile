@@ -1,8 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:anhk/main.dart';
-import 'package:anhk/pages/main_page/new_main_page.dart';
 import 'package:flutter/material.dart';
+import '../main_page/main_page.dart';
 import 'onboarding_data.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -37,7 +36,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const MainApp(), // Теперь переходим на MainApp
+        builder: (context) => const MainApp(),
       ),
     );
   }

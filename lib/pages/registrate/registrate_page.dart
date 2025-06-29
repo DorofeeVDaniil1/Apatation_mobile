@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../design/colors.dart';
 
 class Registrate extends StatelessWidget {
-  const Registrate({Key? key}) : super(key: key);
+  const Registrate({super.key});
 
   void _navigate(BuildContext context, bool search) {
     Navigator.pushReplacement(

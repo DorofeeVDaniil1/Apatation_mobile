@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../design/colors.dart';
 
 class GetReport extends StatelessWidget {
-  const GetReport({Key? key}) : super(key: key);
+  const GetReport({super.key});
 
   @override
   Widget build(BuildContext context) {

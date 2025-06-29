@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../design/colors.dart';
-import 'package:anhk/pages/profile/profile_page.dart'; // Импортируйте страницу ProfilePage
+// Импортируйте страницу ProfilePage
 import 'package:anhk/pages/profile/settings/succes_page.dart';
 
 class Settings extends StatefulWidget {
-  const Settings({Key? key}) : super(key: key);
+  const Settings({super.key});
 
   @override
   _SettingsState createState() => _SettingsState();
@@ -42,8 +42,9 @@ class _SettingsState extends State<Settings> with TickerProviderStateMixin {
     );
 
     // Анимация для вылета сообщения (быстрее, чем линия)
-    _messageSlideAnimation =
-        Tween<Offset>(begin: Offset(1.0, 0.0), end: Offset(0.0, 0.0)).animate(
+    _messageSlideAnimation = Tween<Offset>(
+            begin: const Offset(1.0, 0.0), end: const Offset(0.0, 0.0))
+        .animate(
       CurvedAnimation(
           parent: _lineAnimationController, curve: Curves.easeInOut),
     );
@@ -156,13 +157,7 @@ class _SettingsState extends State<Settings> with TickerProviderStateMixin {
           ),
           iconSize: 32,
           onPressed: () {
-            // Переход на страницу ProfilePage при нажатии на стрелочку
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const ProfilePage()), // Переход на страницу ProfilePage
-            );
+            Navigator.pop(context);
           },
         ),
       ),
@@ -257,15 +252,40 @@ class _SettingsState extends State<Settings> with TickerProviderStateMixin {
   }
 }
 
-class PasswordField extends StatelessWidget {
+class PasswordField extends StatefulWidget {
   final String label;
   final TextEditingController controller;
 
   const PasswordField({
-    Key? key,
+    super.key,
     required this.label,
     required this.controller,
-  }) : super(key: key);
+  });
+
+  @override
+  State<PasswordField> createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<PasswordField> {
+  bool _isObscured = true;
+  bool _isFocused = false;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -274,30 +294,83 @@ class PasswordField extends StatelessWidget {
       children: [
         // Заголовок поля ввода
         Text(
-          label,
+          widget.label,
           style: const TextStyle(
             fontFamily: 'Europe',
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
-        // Поле ввода пароля с закругленными углами и иконкой для показа/скрытия символов
-        TextField(
-          controller: controller,
-          obscureText: true,
-          decoration: InputDecoration(
-            fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            suffixIcon: const Icon(Icons.visibility_off),
+        // Поле ввода пароля с улучшенным дизайном
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          style: const TextStyle(fontFamily: 'Europe'),
+          child: TextField(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            obscureText: _isObscured,
+            style: const TextStyle(
+              fontFamily: 'Europe',
+              fontSize: 16,
+            ),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: _isFocused ? yellow : Colors.grey.shade200,
+                  width: 1.5,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.grey.shade200,
+                  width: 1.5,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: yellow,
+                  width: 1.5,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              hintStyle: TextStyle(
+                fontFamily: 'Europe',
+                color: Colors.grey.shade400,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isObscured ? Icons.visibility_off : Icons.visibility,
+                  color: _isFocused ? yellow : Colors.grey.shade400,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isObscured = !_isObscured;
+                  });
+                },
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
       ],
     );
   }

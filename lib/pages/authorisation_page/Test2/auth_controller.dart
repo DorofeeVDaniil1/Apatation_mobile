@@ -1,10 +1,10 @@
 // ignore_for_file: constant_identifier_names
 
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
 
 import '../../../models/user.dart';
 import '../../../providers/auth_provider.dart';
@@ -19,8 +19,12 @@ class AuthController {
   late final UserService _userService;
 
   AuthController(this.ref) {
-    final apiService =
-        ApiService(baseUrl: 'https://tgrj0i-37-29-92-61.ru.tuna.am');
+    const baseUrl = kIsWeb
+        ? 'http://localhost:8080' // Development proxy
+        : 'http://109.172.101.13:8080';
+
+    _logger.info('🌐 Initializing AuthController with baseUrl: $baseUrl');
+    final apiService = ApiService(baseUrl: baseUrl);
     _userService = UserService(apiService);
   }
 
@@ -39,17 +43,26 @@ class AuthController {
 
   Future<(bool, String)> login(String login, String password) async {
     try {
+      _logger.info('🔐 Попытка входа в систему');
+      _logger.info('📤 Отправляем запрос на /api/auth/login');
+
+      final credentials = {
+        "login": login,
+        "password": password,
+      };
+
+      _logger.info('Данные запроса: ${json.encode(credentials)}');
+
       final token = await _userService.login(login, password);
-      await _handleSuccessfulLogin(token);
+
+      _logger.info('✅ Успешно получен токен авторизации');
+      await _saveToken(token);
+      ref.read(authTokenProvider.notifier).state = token;
+
       return (true, '');
-    } on ApiException catch (e) {
-      if (e.statusCode == 401) {
-        return (false, 'Неверный логин или пароль');
-      }
-      return (false, 'Ошибка авторизации');
     } catch (e) {
-      _logger.severe('Login error: $e');
-      return (false, 'Ошибка соединения. Попробуйте позже.');
+      _logger.severe('❌ Ошибка при попытке входа: $e');
+      return (false, 'Ошибка авторизации: ${e.toString()}');
     }
   }
 
@@ -57,24 +70,28 @@ class AuthController {
     await _saveToken(token);
     ref.read(authTokenProvider.notifier).state = token;
 
+    _logger.info('🔄 Загружаем профиль пользователя...');
     // Загружаем профиль пользователя
     final user = await _userService.getProfile();
+    _logger.info('👤 Данные пользователя получены: ${user.toString()}');
     ref.read(userProvider.notifier).updateUser(user);
   }
 
   Future<void> _saveToken(String token) async {
-    await _secureStorage.write(key: 'access_token', value: token);
+    await _secureStorage.write(key: 'token', value: token);
+    _logger.info('💾 Токен сохранен в хранилище');
   }
 
   Future<String> _getToken() async {
-    return await _secureStorage.read(key: 'access_token') ?? '';
+    return await _secureStorage.read(key: 'token') ?? '';
   }
 
   Future<void> logout() async {
-    await _secureStorage.delete(key: 'access_token');
+    await _secureStorage.delete(key: 'token');
     ref.read(authTokenProvider.notifier).state = null;
     ref.read(userProvider.notifier).updateUser(
           const User(name: '', level: 0, points: 0),
         );
+    _logger.info('🚪 Выполнен выход из системы');
   }
 }
