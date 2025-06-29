@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 // Импортируйте здесь, если нужно
 
 class AchievmentsPage extends StatelessWidget {
-  const AchievmentsPage({Key? key}) : super(key: key);
+  const AchievmentsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +64,8 @@ class AchievmentsPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               // Заголовок Достижения по центру
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Достижения',
                   style: TextStyle(
@@ -78,8 +78,8 @@ class AchievmentsPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               // Список достижений
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
                     // Пример достижения
@@ -88,13 +88,13 @@ class AchievmentsPage extends StatelessWidget {
                           'assets/achievement_image_1.png', // Путь к изображению
                       title: 'Достижение 1',
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     AchievementItem(
                       image:
                           'assets/achievement_image_2.png', // Путь к изображению
                       title: 'Достижение 2',
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     AchievementItem(
                       image:
                           'assets/achievement_image_3.png', // Путь к изображению
@@ -116,10 +116,10 @@ class AchievementItem extends StatelessWidget {
   final String title;
 
   const AchievementItem({
-    Key? key,
+    super.key,
     required this.image,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +133,7 @@ class AchievementItem extends StatelessWidget {
             color: Colors.grey.withOpacity(0.2),
             spreadRadius: 1,
             blurRadius: 5,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -151,7 +151,7 @@ class AchievementItem extends StatelessWidget {
           // Название достижения
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),

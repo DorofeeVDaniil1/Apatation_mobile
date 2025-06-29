@@ -1,4 +1,4 @@
-import 'package:anhk/pages/authorisation_page/Test2/authorisation_page.dart'; // Add this import
+import 'package:anhk/pages/authorisation_page/Test2/authorisation_page.dart';
 import 'package:flutter/material.dart';
 import 'package:anhk/design/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +12,9 @@ void main() {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
 
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

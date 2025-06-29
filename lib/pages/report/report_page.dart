@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../design/colors.dart';
 
 class Report extends StatelessWidget {
-  const Report({Key? key}) : super(key: key);
+  const Report({super.key});
 
   void _navigate(BuildContext context, bool search) {
     Navigator.pushReplacement(

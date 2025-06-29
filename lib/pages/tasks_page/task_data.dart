@@ -1,5 +1,5 @@
-final String tasksJson = '''{
-  "Комплексный анализ рисков в производственной среде": {
+const String tasksJson = '''{
+  "Новичок": {
     "Задача1": {
       "details": [
         {"title": "Анализ угроз"},
@@ -8,7 +8,8 @@ final String tasksJson = '''{
         {"text": "\\n\\nДополнительная информация:"},
         {"widget_white_none": "Доклад по угрозам предприятия"}
       ],
-      "isSolved": false
+      "isSolved": false,
+      "level": 0
     },
     "Задача2": {
       "details": [
@@ -18,8 +19,11 @@ final String tasksJson = '''{
         {"text": "\\n\\nМетодология оценки:"},
         {"widget_white_none": "Стандарт оценки рисков"}
       ],
-      "isSolved": true
-    },
+      "isSolved": true,
+      "level": 0
+    }
+  },
+  "Средний": {
     "Задача3": {
       "details": [
         {"title": "Составление плана мер"},
@@ -28,10 +32,9 @@ final String tasksJson = '''{
         {"text": "\\n\\nПлан действий:"},
         {"widget_white_none": "Проект плана мер"}
       ],
-      "isSolved": false
-    }
-  },
-  "Оптимизация производственных процессов": {
+      "isSolved": false,
+      "level": 1
+    },
     "Задача4": {
       "details": [
         {"title": "Анализ текущих процессов"},
@@ -40,8 +43,11 @@ final String tasksJson = '''{
         {"text": "\\n\\nОписание процесса:"},
         {"widget_white_none": "Отчет об анализе процессов"}
       ],
-      "isSolved": false
-    },
+      "isSolved": false,
+      "level": 1
+    }
+  },
+  "Профи": {
     "Задача5": {
       "details": [
         {"title": "Внедрение автоматизации"},
@@ -50,10 +56,9 @@ final String tasksJson = '''{
         {"text": "\\n\\nИнструкция по внедрению:"},
         {"widget_white_none": "Руководство по автоматизации"}
       ],
-      "isSolved": true
-    }
-  },
-  "Разработка новых стратегий безопасности": {
+      "isSolved": false,
+      "level": 2
+    },
     "Задача6": {
       "details": [
         {"title": "Анализ угроз информационной безопасности"},
@@ -62,39 +67,8 @@ final String tasksJson = '''{
         {"text": "\\n\\nРекомендации:"},
         {"widget_white_none": "Отчет по ИБ"}
       ],
-      "isSolved": false
-    },
-    "Задача7": {
-      "details": [
-        {"title": "Разработка протоколов реагирования"},
-        {"text": "Создание протоколов реагирования на инциденты\\n\\nНеобходимые документы:"},
-        {"widget_grey_passport": "Паспорт гражданина РФ"},
-        {"text": "\\n\\nПротокол:"},
-        {"widget_white_none": "Шаблон протокола"}
-      ],
-      "isSolved": true
-    }
-  },
-  "Управление качеством": {
-    "Задача8": {
-      "details": [
-        {"title": "Внедрение стандартов качества"},
-        {"text": "Разработка и внедрение стандартов качества продукции\\n\\nНеобходимые документы:"},
-        {"widget_grey_passport": "Паспорт гражданина РФ"},
-        {"text": "\\n\\nСтандарты:"},
-        {"widget_white_none": "Документ о стандартах"}
-      ],
-      "isSolved": false
-    },
-    "Задача9": {
-      "details": [
-        {"title": "Контроль качества"},
-        {"text": "Организация системы контроля качества\\n\\nНеобходимые документы:"},
-        {"widget_grey_passport": "Паспорт гражданина РФ"},
-        {"text": "\\n\\nМетодика контроля:"},
-        {"widget_white_none": "Протокол контроля"}
-      ],
-      "isSolved": true
+      "isSolved": false,
+      "level": 2
     }
   }
 }''';

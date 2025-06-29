@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../design/colors.dart';
 
 class Documents extends StatelessWidget {
-  const Documents({Key? key}) : super(key: key);
+  const Documents({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,13 +1,9 @@
 import 'dart:convert';
-import 'package:anhk/pages/questions/questions_page.dart';
 import 'package:flutter/material.dart';
-import '../../design/colors.dart';
-import '../../design/dimensions.dart';
-import '../../design/images.dart';
 import '../../templates/accordion.dart';
 
 class SearchQuestions extends StatefulWidget {
-  const SearchQuestions({Key? key}) : super(key: key);
+  const SearchQuestions({super.key});
 
   @override
   State<SearchQuestions> createState() => _SearchQuestionsState();
@@ -92,124 +88,59 @@ class _SearchQuestionsState extends State<SearchQuestions> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    height: 70,
-                    width: double.infinity,
-                    color: darkBlue,
-                  ),
-                  Positioned(
-                    bottom: -8,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 35,
-                      decoration: const BoxDecoration(
-                        color: backgroundColor,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(50),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 16),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const QuestionsPage()),
-                      );
-                    },
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(90),
-                      ),
-                      child: arrow_back,
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: "Поиск...",
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
-              const Text(
-                "Часто задаваемые вопросы",
-                style: TextStyle(
-                  fontSize: big,
-                  fontFamily: "Europe",
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: "Поиск...",
-                              prefixIcon: const Icon(Icons.search),
-                              filled: true,
-                              fillColor: Colors.grey[200],
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(50),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        IconButton(
-                          icon: const Icon(Icons.filter_list, size: 30),
-                          onPressed: () => _showFilters(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Вывод списка найденных вопросов
-                    Column(
-                      children: filteredQuestions
-                          .map((q) => CustomAccordion(
-                                title: q['title'],
-                                content: q['content'],
-                              ))
-                          .toList(),
-                    ),
-
-                    if (filteredQuestions.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 20),
-                        child: Text(
-                          "Ничего не найдено",
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      ),
-                  ],
-                ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.filter_list, size: 30),
+                onPressed: () => _showFilters(context),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+
+          // Вывод списка найденных вопросов
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: filteredQuestions
+                    .map((q) => CustomAccordion(
+                          title: q['title'],
+                          content: q['content'],
+                        ))
+                    .toList(),
+              ),
+            ),
+          ),
+
+          if (filteredQuestions.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Text(
+                "Ничего не найдено",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ),
+        ],
       ),
     );
   }

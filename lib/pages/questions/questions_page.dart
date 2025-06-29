@@ -2,18 +2,29 @@ import 'package:anhk/pages/questions/private_questions.dart';
 import 'package:anhk/pages/questions/search_questions.dart';
 import 'package:flutter/material.dart';
 import '../../design/colors.dart';
+import '../../design/dimensions.dart';
 
-class QuestionsPage extends StatelessWidget {
-  const QuestionsPage({Key? key}) : super(key: key);
+class QuestionsPage extends StatefulWidget {
+  const QuestionsPage({super.key});
 
-  void _navigate(BuildContext context, bool search) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            search ? const SearchQuestions() : const PrivateQuestions(),
-      ),
-    );
+  @override
+  State<QuestionsPage> createState() => _QuestionsPageState();
+}
+
+class _QuestionsPageState extends State<QuestionsPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -22,14 +33,24 @@ class QuestionsPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Верхняя часть с синим фоном и логотипом
             Stack(
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  height: 70,
+                  height: 160,
                   width: double.infinity,
                   color: darkBlue,
+                  child: const Center(
+                    child: Text(
+                      "Вопросы",
+                      style: TextStyle(
+                        fontFamily: "Europe",
+                        fontSize: big + 5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
                 Positioned(
                   bottom: -8,
@@ -47,52 +68,27 @@ class QuestionsPage extends StatelessWidget {
                 ),
               ],
             ),
-            // Размещаем кнопки по центру экрана
+            const SizedBox(height: 16),
+            TabBar(
+              controller: _tabController,
+              indicator: const UnderlineTabIndicator(
+                borderSide: BorderSide(color: yellow, width: 3.0),
+              ),
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.grey,
+              tabs: const [
+                Tab(text: 'Часто задаваемые'),
+                Tab(text: 'Личные вопросы'),
+              ],
+            ),
             Expanded(
-              child: Center(
-                  child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0, vertical: 10.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min, // Центрируем содержимое
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => _navigate(context, true),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: black,
-                        backgroundColor: yellow,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10.0),
-                        textStyle:
-                            const TextStyle(fontSize: 16, fontFamily: 'Europe'),
-                        minimumSize: const Size(
-                            double.infinity, 50), // Фиксированный размер кнопок
-                      ),
-                      child: const Text('Часто задаваемые вопросы'),
-                    ),
-                    const SizedBox(height: 50), // Отступ между кнопками
-                    ElevatedButton(
-                      onPressed: () => _navigate(context, false),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: black,
-                        backgroundColor: yellow,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10.0),
-                        textStyle:
-                            const TextStyle(fontSize: 16, fontFamily: 'Europe'),
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                      child: const Text('Личные и уникальные вопросы'),
-                    ),
-                  ],
-                ),
-              )),
+              child: TabBarView(
+                controller: _tabController,
+                children: const [
+                  SearchQuestions(),
+                  PrivateQuestions(),
+                ],
+              ),
             ),
           ],
         ),

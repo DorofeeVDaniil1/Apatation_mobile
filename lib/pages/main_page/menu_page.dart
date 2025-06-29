@@ -1,10 +1,10 @@
+import 'package:anhk/pages/main_page/new_main_page.dart';
 import 'package:anhk/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:anhk/design/colors.dart';
 import 'package:anhk/pages/main_page/main_page.dart';
 import 'package:anhk/pages/tasks_page/tasks_page.dart';
 import 'package:anhk/pages/questions/questions_page.dart';
-
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   // Основные страницы, доступные через меню
-  final List<Widget> _menuPages = const [
+  final List<Widget> _menuPages = [
     MainPage(),
     TasksPage(),
     QuestionsPage(),

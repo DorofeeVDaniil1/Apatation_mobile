@@ -3,6 +3,7 @@
 import 'package:anhk/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
 import '../../../providers/is_admin_provider.dart';
 import '../../onboarding/onboarding_page.dart';
 import 'auth_controller.dart';
@@ -16,6 +17,7 @@ class AuthorizationPage extends ConsumerStatefulWidget {
 }
 
 class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
+  final _logger = Logger('AuthorizationPage');
   bool _obscureText = true;
   bool _isLoading = false;
   final _loginController = TextEditingController();
@@ -26,7 +28,8 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
   void initState() {
     super.initState();
     _authController = AuthController(ref);
-    _tryAutoLogin();
+    // Отключаем автологин
+    // _tryAutoLogin();
   }
 
   @override
@@ -36,13 +39,35 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
     super.dispose();
   }
 
-  Future<void> _tryAutoLogin() async {
-    setState(() => _isLoading = true);
-    final success = await _authController.tryAutoLogin();
-    setState(() => _isLoading = false);
+  Future<void> _handleLogin() async {
+    // Проверяем, что поля не пустые
+    if (_loginController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
+      _showError('Пожалуйста, заполните все поля');
+      return;
+    }
 
-    if (success) {
-      _navigateToHome();
+    setState(() => _isLoading = true);
+
+    try {
+      _logger.info('👉 Начинаем процесс авторизации');
+      _logger.info('Введенный логин: ${_loginController.text}');
+
+      final (success, message) = await _authController.login(
+          _loginController.text.trim(), _passwordController.text.trim());
+
+      if (success) {
+        _logger.info('✅ Авторизация успешна, переходим на главную');
+        _navigateToHome();
+      } else {
+        _logger.severe('❌ Ошибка авторизации: $message');
+        _showError(message);
+      }
+    } catch (e) {
+      _logger.severe('❌ Неожиданная ошибка при авторизации: $e');
+      _showError('Произошла ошибка при попытке входа');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -56,37 +81,6 @@ class _AuthorizationPageState extends ConsumerState<AuthorizationPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
-  }
-
-  Future<void> _handleLogin() async {
-    // Проверка на demo доступ
-    if (_loginController.text == 'demo' && _passwordController.text == 'demo') {
-      _navigateToHome();
-      return;
-    }
-
-    // Валидация полей
-    if (_loginController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showError('Пожалуйста, заполните все поля');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      final (success, message) = await _authController.login(
-        _loginController.text,
-        _passwordController.text,
-      );
-
-      if (success) {
-        _navigateToHome();
-      } else {
-        _showError(message);
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
   }
 
   void _navigateToHome() {

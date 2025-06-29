@@ -6,12 +6,12 @@ class LinksPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BasePageTemplate(
+    return const BasePageTemplate(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text('Страница ссылок'),
+            Text('Страница ссылок'),
             // Добавьте здесь свой контент
           ],
         ),

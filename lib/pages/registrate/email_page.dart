@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../design/colors.dart';
 
 class ThroughEmail extends StatelessWidget {
-  const ThroughEmail({Key? key}) : super(key: key);
+  const ThroughEmail({super.key});
 
   @override
   Widget build(BuildContext context) {

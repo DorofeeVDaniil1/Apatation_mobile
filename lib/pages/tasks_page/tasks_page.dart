@@ -1,372 +1,261 @@
-import 'dart:convert';
-import 'package:anhk/pages/tasks_page/editor/task_edit.dart';
-import 'package:anhk/pages/tasks_page/task_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../design/colors.dart';
 import '../../design/dimensions.dart';
-import 'editor/new_task.dart';
-import 'task_item.dart';
-import '../authorisation_page/Test2/providers.dart';
-import 'package:http/http.dart' as http;
+import '../../design/images.dart';
+import '../../providers/tasks_provider.dart';
+import '../../providers/tasks_tab_provider.dart';
+import 'level_tasks_page.dart';
+
+const double normal = 16.0;
+
+class TaskLevel {
+  final String name;
+  final int completedTasks;
+  final int totalTasks;
+  final Image levelImage;
+  final bool isLocked;
+
+  TaskLevel({
+    required this.name,
+    required this.completedTasks,
+    required this.totalTasks,
+    required this.levelImage,
+    this.isLocked = false,
+  });
+}
 
 class TasksPage extends ConsumerStatefulWidget {
-  // Если practiceName == null – показываем список практик,
-  // иначе – список задач для выбранной практики.
-  final String? practiceName;
-  const TasksPage({Key? key, this.practiceName}) : super(key: key);
+  const TasksPage({super.key});
 
   @override
   _TasksPageState createState() => _TasksPageState();
 }
 
-class _TasksPageState extends ConsumerState<TasksPage> {
-  // В tasksMap каждая практика является ключом,
-  // а её значение – словарь задач для этой практики.
-  late Map<String, dynamic> tasksMap;
-
-  final String updateUrl = "https://example.com/api/tasks";
+class _TasksPageState extends ConsumerState<TasksPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    tasksMap = Map<String, dynamic>.from(json.decode(tasksJson));
-  }
-
-  // Функция преобразует словарь задач для выбранной практики в список задач,
-  // возвращая вместе с обработанными данными оригинальный ключ и список details.
-  List<Map<String, dynamic>> _convertTasksMapToList(
-      Map<String, dynamic> practiceTasks) {
-    List<Map<String, dynamic>> tasksList = [];
-    practiceTasks.forEach((originalKey, taskData) {
-      List<Map<String, String>> details = List<Map<String, String>>.from(
-          taskData["details"].map((item) => Map<String, String>.from(item)));
-      String title = originalKey;
-      String description = "";
-      Map<String, String> documents = {};
-      List<String> detailData = [];
-
-      for (var item in details) {
-        if (item.containsKey("title")) {
-          title = item["title"]!;
-        } else if (item.containsKey("text") &&
-            item["text"]!.contains("\n\nНеобходимые документы:")) {
-          description =
-              item["text"]!.split("\n\nНеобходимые документы:").first.trim();
-        } else if (item.keys
-            .any((k) => k.startsWith("widget_") && k != "widget_white_none")) {
-          item.forEach((key, value) {
-            if (key.startsWith("widget_") && key != "widget_white_none") {
-              documents[key] = value;
-            }
-          });
-        } else if (item.containsKey("widget_white_none")) {
-          detailData.add(item["widget_white_none"]!);
-        }
-      }
-
-      tasksList.add({
-        "originalKey": originalKey,
-        "title": title,
-        "text": description,
-        "isSolved": taskData["isSolved"],
-        "documents": documents,
-        "detailData": detailData,
-        "details":
-            details, // сохраняем оригинальный список деталей для дальнейшего использования
+    _tabController = TabController(length: 2, vsync: this);
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
       });
     });
-    return tasksList;
   }
 
-  Future<void> _sendUpdatedTasks() async {
-    try {
-      final response = await http.post(
-        Uri.parse(updateUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(tasksMap),
-      );
-      if (response.statusCode != 200) {
-        // обработка ошибки при необходимости
-      }
-    } catch (e) {
-      // обработка исключений
-    }
-  }
-
-  // Операции с задачами для выбранной практики (вызываются только если practiceName != null)
-  void markTaskAsSolved(String taskKey) {
-    if (widget.practiceName != null) {
-      setState(() {
-        (tasksMap[widget.practiceName] as Map<String, dynamic>)[taskKey]
-            ["isSolved"] = true;
-      });
-      _sendUpdatedTasks();
-    }
-  }
-
-  void deleteTask(String taskKey) {
-    if (widget.practiceName != null) {
-      setState(() {
-        (tasksMap[widget.practiceName] as Map<String, dynamic>).remove(taskKey);
-      });
-      _sendUpdatedTasks();
-    }
-  }
-
-  void editTask(String taskKey, Map<String, dynamic> taskData) async {
-    if (widget.practiceName != null) {
-      final isSolved = (tasksMap[widget.practiceName]
-          as Map<String, dynamic>)[taskKey]["isSolved"];
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => EditTaskPage(
-            taskName: taskKey,
-            details: List<Map<String, String>>.from(
-              taskData["details"].map((item) => Map<String, String>.from(item)),
-            ),
-          ),
-        ),
-      );
-      if (result != null && result is Map<String, dynamic>) {
-        setState(() {
-          if (taskKey != result["taskName"]) {
-            (tasksMap[widget.practiceName] as Map<String, dynamic>)
-                .remove(taskKey);
-          }
-          (tasksMap[widget.practiceName]
-              as Map<String, dynamic>)[result["taskName"]] = {
-            "details": result["details"],
-            "isSolved": isSolved,
-          };
-        });
-        _sendUpdatedTasks();
-      }
-    }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = ref.watch(isAdminProvider);
+    final tasks = ref.watch(tasksProvider);
+    final tabIndex = ref.watch(tasksTabIndexProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    // Если не выбрана практика – показываем список практик
-    if (widget.practiceName == null) {
-      final practices = tasksMap.keys.toList();
-      return Scaffold(
-        body: SafeArea(
+    // Подсчитываем выполненные задачи для каждого уровня
+    final completedByLevel = [0, 0, 0];
+    final totalByLevel = [0, 0, 0];
+
+    for (var task in tasks) {
+      totalByLevel[task.level]++;
+      if (task.isSolved) {
+        completedByLevel[task.level]++;
+      }
+    }
+
+    // Проверяем доступность уровней
+    final isLevel1Complete =
+        totalByLevel[0] > 0 && completedByLevel[0] == totalByLevel[0];
+    final isLevel2Complete =
+        totalByLevel[1] > 0 && completedByLevel[1] == totalByLevel[1];
+
+    // Обновляем список уровней с реальными данными и статусом блокировки
+    final levels = [
+      TaskLevel(
+        name: 'Новичок',
+        completedTasks: completedByLevel[0],
+        totalTasks: totalByLevel[0],
+        levelImage: beginner_level,
+        isLocked: false, // Первый уровень всегда доступен
+      ),
+      TaskLevel(
+        name: 'Продвинутый',
+        completedTasks: completedByLevel[1],
+        totalTasks: totalByLevel[1],
+        levelImage: advanced_level,
+        isLocked:
+            !isLevel1Complete, // Заблокирован, пока не пройден первый уровень
+      ),
+      TaskLevel(
+        name: 'Профи',
+        completedTasks: completedByLevel[2],
+        totalTasks: totalByLevel[2],
+        levelImage: pro_level,
+        isLocked:
+            !isLevel2Complete, // Заблокирован, пока не пройден второй уровень
+      ),
+    ];
+
+    // Синхронизируем контроллер с провайдером
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_tabController.index != tabIndex) {
+        _tabController.animateTo(tabIndex);
+      }
+    });
+
+    final filteredTasks = tasks.where((task) {
+      final title = _getTaskTitle(task.details).toLowerCase();
+      return title.contains(_searchQuery.toLowerCase());
+    }).toList();
+
+    final unsolvedTasks =
+        filteredTasks.where((task) => !task.isSolved).toList();
+    final solvedTasks = filteredTasks.where((task) => task.isSolved).toList();
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Column(
             children: [
-              // Заголовок для списка практик
               Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    height: 90,
+                    height: 180,
                     width: double.infinity,
-                    color: darkBlue,
-                    child: const Center(
-                      child: Text(
-                        "Практики",
-                        style: TextStyle(
-                          fontFamily: "Europe",
-                          fontSize: big + 5,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                    decoration: const BoxDecoration(
+                      color: darkBlue,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(100),
                       ),
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 20),
+                        Text(
+                          "Уровни",
+                          style: TextStyle(
+                            fontFamily: "Europe",
+                            fontSize: big + 5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Positioned(
-                    bottom: -8,
+                    bottom: -50,
                     left: 0,
                     right: 0,
-                    child: Container(
-                      height: 35,
-                      decoration: const BoxDecoration(
-                        color: backgroundColor,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(50),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 22),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: practices.length,
-                  itemBuilder: (context, index) {
-                    final practice = practices[index];
-                    return ListTile(
-                      title: Text(
-                        practice,
-                        style: const TextStyle(
-                          fontFamily: "Europe",
-                          fontSize: 18,
-                        ),
-                      ),
-                      trailing: Container(
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.arrow_forward,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TasksPage(practiceName: practice),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    // Если выбрана практика – отображаем список задач для неё
-    else {
-      final practiceTasks =
-          tasksMap[widget.practiceName] as Map<String, dynamic>;
-      final tasksList = _convertTasksMapToList(practiceTasks);
-      final unsolvedTasksList = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children:
-              tasksList.where((task) => task["isSolved"] == false).map((task) {
-            final taskKey = task["originalKey"] as String;
-            final taskName = task["title"] as String;
-            final details = task["details"] as List<Map<String, String>>;
-            return Column(
-              children: [
-                const SizedBox(height: 10),
-                TaskItem(
-                  taskName: taskName,
-                  details: details,
-                  onDelete: () => deleteTask(taskKey),
-                  onMarkAsSolved: () => markTaskAsSolved(taskKey),
-                  onEdit: () => editTask(taskKey, task),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
-      );
-
-      final solvedTasksList = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children:
-              tasksList.where((task) => task["isSolved"] == true).map((task) {
-            final taskKey = task["originalKey"] as String;
-            final taskName = task["title"] as String;
-            final details = task["details"] as List<Map<String, String>>;
-            return Column(
-              children: [
-                const SizedBox(height: 8),
-                TaskItem(
-                  taskName: taskName,
-                  details: details,
-                  onDelete: () => deleteTask(taskKey),
-                  onMarkAsSolved: () {},
-                  onEdit: () => editTask(taskKey, task),
-                ),
-                const SizedBox(height: 20),
-              ],
-            );
-          }).toList(),
-        ),
-      );
-
-      return Scaffold(
-        body: SafeArea(
-          child: Stack(
-            // Используем Stack для позиционирования кнопки
-            children: [
-              Column(
-                children: [
-                  // Заголовок – название практики и кнопка добавления (если admin)
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        height: 110,
-                        width: double.infinity,
-                        color: darkBlue,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.practiceName!,
-                                style: const TextStyle(
-                                  fontFamily: "Europe",
-                                  fontSize: big + 5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 40),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                            ),
-                            if (isAdmin)
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: medal,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        "12",
+                                        style: TextStyle(
+                                          fontFamily: "Europe",
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: yellow,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    "баллов",
+                                    style: TextStyle(
+                                      fontFamily: "Europe",
+                                      fontSize: 14,
+                                      color: greyText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 40),
                               Container(
-                                width: 40,
+                                width: 1,
                                 height: 40,
-                                decoration: BoxDecoration(
-                                  color: yellow,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(Icons.add,
-                                      color: Colors.black),
-                                  onPressed: () async {
-                                    final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) => const NewTaskPage()),
-                                    );
-                                    if (result != null &&
-                                        result is Map<String, dynamic>) {
-                                      final newTaskKey =
-                                          result["taskName"] as String;
-                                      final details = result["details"]
-                                          as List<Map<String, String>>;
-                                      setState(() {
-                                        (tasksMap[widget.practiceName!] as Map<
-                                            String, dynamic>)[newTaskKey] = {
-                                          "details": details,
-                                          "isSolved": false,
-                                        };
-                                      });
-                                      _sendUpdatedTasks();
-                                    }
-                                  },
-                                ),
+                                color: Colors.grey[300],
                               ),
-                          ],
+                              const SizedBox(width: 40),
+                              Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: time_clock,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        "7",
+                                        style: TextStyle(
+                                          fontFamily: "Europe",
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: yellow,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    "дней",
+                                    style: TextStyle(
+                                      fontFamily: "Europe",
+                                      fontSize: 14,
+                                      color: greyText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Positioned(
-                        bottom: -8,
-                        left: 0,
-                        right: 0,
-                        child: Container(
+                        const SizedBox(height: 10),
+                        Container(
                           height: 35,
                           decoration: const BoxDecoration(
                             color: backgroundColor,
@@ -375,118 +264,245 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: TextField(
-                      style: const TextStyle(
-                        fontFamily: 'Europe',
-                        color: Colors.black,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Поиск...',
-                        hintStyle: const TextStyle(
-                          fontFamily: 'Europe',
-                          color: Colors.grey,
-                        ),
-                        fillColor: Colors.white,
-                        filled: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 20),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: AnimatedTabSwitcher(
-                      firstTabContent: unsolvedTasksList,
-                      secondTabContent: solvedTasksList,
+                      ],
                     ),
                   ),
                 ],
               ),
-              // Переносим Positioned за пределы Column, но внутри Stack
-              Positioned(
-                left: 16, // Перемещаем кнопку влево
-                bottom: 16, // Прижимаем к нижнему краю
-                child: FloatingActionButton(
-                  backgroundColor: yellow,
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Icon(Icons.arrow_back, color: Colors.black),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 80),
+                    // Новичок (слева)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        width: screenWidth * 0.7,
+                        child: _buildLevelCard(levels[0], 0),
+                      ),
+                    ),
+                    // Линия от Новичка к Продвинутому
+                    SizedBox(
+                      height: 95,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: 8,
+                            right: 8,
+                            child: SvgPicture.asset(
+                              'assets/images/way1.svg',
+                              width: screenWidth - 16,
+                              height: 95,
+                              fit: BoxFit.fill,
+                              colorFilter: ColorFilter.mode(
+                                levels[1].isLocked
+                                    ? Colors.grey
+                                    : Colors.yellow,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Продвинутый (справа)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: screenWidth * 0.7,
+                        child: _buildLevelCard(levels[1], 1),
+                      ),
+                    ),
+                    // Линия от Продвинутого к Профи
+                    SizedBox(
+                      height: 95,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: 8,
+                            right: 8,
+                            child: SvgPicture.asset(
+                              'assets/images/way2.svg',
+                              width: screenWidth - 16,
+                              height: 95,
+                              fit: BoxFit.fill,
+                              colorFilter: ColorFilter.mode(
+                                levels[2].isLocked
+                                    ? Colors.grey
+                                    : Colors.grey.shade400,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Профи (слева)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        width: screenWidth * 0.7,
+                        child: _buildLevelCard(levels[2], 2),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-      );
-    }
-  }
-}
-
-class AnimatedTabSwitcher extends StatefulWidget {
-  final Widget firstTabContent;
-  final Widget secondTabContent;
-
-  const AnimatedTabSwitcher({
-    Key? key,
-    required this.firstTabContent,
-    required this.secondTabContent,
-  }) : super(key: key);
-
-  @override
-  _AnimatedTabSwitcherState createState() => _AnimatedTabSwitcherState();
-}
-
-class _AnimatedTabSwitcherState extends State<AnimatedTabSwitcher>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+      ),
+    );
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  Widget _buildLevelCard(TaskLevel level, int index) {
+    // Определяем цвет для заблокированного состояния
+    final Color lockColor = Colors.grey.shade300;
+    final bool isLocked = level.isLocked;
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TabBar(
-          controller: _tabController,
-          indicator: const UnderlineTabIndicator(
-            borderSide: BorderSide(color: yellow, width: 3.0),
-          ),
-          labelColor: Colors.black,
-          unselectedLabelColor: Colors.grey,
-          tabs: const [
-            Tab(text: 'Нерешенные задачи'),
-            Tab(text: 'Решенные задачи'),
+    return GestureDetector(
+      onTap: isLocked
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LevelTasksPage(
+                    level: level,
+                    levelIndex: index,
+                  ),
+                ),
+              );
+            },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isLocked ? lockColor : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              SingleChildScrollView(child: widget.firstTabContent),
-              SingleChildScrollView(child: widget.secondTabContent),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (index != 1) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          isLocked ? Colors.grey : Colors.transparent,
+                          BlendMode.saturation,
+                        ),
+                        child: level.levelImage,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              level.name,
+                              style: TextStyle(
+                                fontFamily: "Europe",
+                                fontSize: big,
+                                fontWeight: FontWeight.bold,
+                                color: isLocked ? Colors.grey : Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          if (isLocked) ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.lock,
+                                color: Colors.grey, size: 20),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        level.totalTasks > 0
+                            ? 'Выполнено заданий ${level.completedTasks}/${level.totalTasks}'
+                            : 'Нет доступных заданий',
+                        style: TextStyle(
+                          fontFamily: "Europe",
+                          fontSize: normal,
+                          color: isLocked ? Colors.grey : Colors.grey[600],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+                if (index == 1) ...[
+                  const SizedBox(width: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          isLocked ? Colors.grey : Colors.transparent,
+                          BlendMode.saturation,
+                        ),
+                        child: level.levelImage,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: level.totalTasks > 0
+                    ? level.completedTasks / level.totalTasks
+                    : 0,
+                backgroundColor:
+                    isLocked ? Colors.grey.shade200 : Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isLocked
+                      ? Colors.grey
+                      : (index == 0
+                          ? yellow
+                          : (index == 1 ? darkBlue : Colors.purple)),
+                ),
+                minHeight: 10,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
+  }
+
+  String _getTaskTitle(List<Map<String, String>> details) {
+    for (var item in details) {
+      if (item.containsKey("title")) {
+        return item["title"]!;
+      }
+    }
+    return "";
   }
 }
